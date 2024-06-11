@@ -1,25 +1,22 @@
 extends Node2D
 
-# Highest: 43, Raul
-
 # directions [dx, dy]
 enum DIRS {N, E, S, W}
 const DIRMAP = {DIRS.N:[0,-1], DIRS.E:[1,0], DIRS.S:[0,1], DIRS.W:[-1, 0]}
 
 # size (NxN) of grid
-const NSQUARES = 16
+var NSQUARES = max(16, 5)
 
 # time between frames (T = period) (sec)
-const T = .1
+var T = .1
 
 # colors
-var BGCOLOR = Color.DARK_CYAN
-var BODYCOLOR = Color.ORCHID
-var APPLECOLOR = Color.DARK_RED
-var HEADCOLOR = BODYCOLOR.darkened(.1)
+var BGCOLOR
+var APPLECOLOR
+var HEADCOLOR
 
 # default polygon definitions
-static var DEFPOLY = PackedVector2Array([Vector2(0, 0), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0)])
+var DEFPOLY = PackedVector2Array([Vector2(0, 0), Vector2(0, 1), Vector2(1, 1), Vector2(1, 0)])
 
 # whether game is on or not
 static var gameOn = false
@@ -31,11 +28,10 @@ var body = []
 var appleLoc = Vector2i(-1, -1)
 # whether the body can move
 var bodyCanMove = false
+
 # current facing direction
 var cDir = null
 var targetDir = null
-# color change registry
-var changes = {BGCOLOR:[], BODYCOLOR:[], APPLECOLOR:[]}
 #paused
 var paused = false
 
@@ -43,9 +39,8 @@ var paused = false
 func _ready() -> void:
 	# reset all vars
 	BGCOLOR = Color.DARK_CYAN
-	BODYCOLOR = Color.ORCHID
 	APPLECOLOR = Color.DARK_RED
-	HEADCOLOR = BODYCOLOR.darkened(.1)
+	HEADCOLOR = Color.DARK_ORCHID
 	gameOn = false
 	squareWidth = 0
 	body = []
@@ -53,16 +48,16 @@ func _ready() -> void:
 	bodyCanMove = false
 	cDir = null
 	targetDir = null
-	changes = {BGCOLOR:[], BODYCOLOR:[], APPLECOLOR:[]}
 	paused = false
 	
 	update_score(0)
 	init_nodes()
 	refresh_width()
-	if not (get_viewport().size_changed.is_connected(refresh_width)): get_viewport().size_changed.connect(refresh_width)
+	if not (get_viewport().size_changed.is_connected(refresh_width)):
+		get_viewport().size_changed.connect(refresh_width)
 	reset_bod()
 	reset_apple()
-	repaint()
+	paint_body()
 	gameOn = true
 	bodyCanMove = true
 
@@ -70,10 +65,10 @@ func _ready() -> void:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	parse_input()
-	if !gameOn: return
 	
 	# if its time to check
-	if bodyCanMove and not paused:
+	if gameOn and bodyCanMove and not paused:
+		# dir not set (beginning of a game)
 		if targetDir == null: return
 		cDir = targetDir
 		
@@ -82,25 +77,23 @@ func _process(_delta: float) -> void:
 		var nx = head.x + DIRMAP[cDir][0]
 		var ny = head.y + DIRMAP[cDir][1]
 		
-		if !cellValid(Vector2i(nx, ny)): 
+		if not cellValid(Vector2i(nx, ny)): 
 			game_over()
 			return
 		
 		# check if it ate an apple
-		var ate = nx == appleLoc.x and ny == appleLoc.y
+		var ate = (nx == appleLoc.x and ny == appleLoc.y)
 		reset_apple()
 		body.insert(0, Vector2i(nx, ny))
-		#set_color(nx, ny, HEADCOLOR)
-		#set_color(head.x, head.y, BODYCOLOR)
 		if !ate:
 			# delete the last
-			var todel = body.pop_back()	
+			var todel = body.pop_back()
 			set_color(todel.x, todel.y, BGCOLOR)
+		
 		update_score(len(body)-1)
-		paint_body()
 		
 		bodyCanMove = false
-		await delay(T)
+		await wait_for_frame()
 		bodyCanMove = true
 
 func update_score(x):
@@ -109,17 +102,10 @@ func update_score(x):
 func game_over():
 	gameOn = false
 	print("Score = " + str(len(body)))
-	BODYCOLOR = Color.INDIAN_RED
+	HEADCOLOR = Color.INDIAN_RED
 	BGCOLOR = Color.PALE_VIOLET_RED
 	appleLoc = Vector2i(-1, -1)
 	refresh_bg()
-
-func repaint():
-	'''Repaints everything in the "changes" dictionary'''
-	for color in changes:
-		for n in changes[color]:
-			set_color(n.x, n.y, color)
-			changes[color].remove_at(0)
 
 func parse_input():
 	if Input.is_action_just_pressed("reset"):
@@ -142,6 +128,7 @@ func parse_input():
 		
 	if !same_dirline(actdir):
 		targetDir = actdir
+		# make dir opposite dir 10% of the time
 		#if (randint(0, 10) == 2):
 			#targetDir = DIRS.values()[(DIRS.values().find(targetDir)+2)%4]
 
@@ -159,11 +146,14 @@ func cellValid(vect):
 	return 0 <= vect.x and vect.x < NSQUARES \
 		and 0 <= vect.y and vect.y < NSQUARES \
 		and not body_contains_XY(vect.x, vect.y)
+		
 func reset_bod():
 	'''Resets the body, placing the start at a random location.'''
-	changes[BGCOLOR].append_array(body)
-	body = [Vector2i(randint(2,NSQUARES-2), randint(2, NSQUARES-2))]
-	changes[BODYCOLOR].append(body[0])
+	body = [Vector2i(randint(2,NSQUARES-3), randint(2, NSQUARES-3))]
+	# add two in a random dir
+	var dir = DIRMAP[randint(0, 3)]
+	for x in range(2):
+		body.append(body[0] + Vector2i(dir[0], dir[1])*(x+1))
 
 func init_nodes():
 	'''Initializes all the nodes'''
@@ -172,12 +162,14 @@ func init_nodes():
 			make_node(x,y)
 
 func paint_body():
-	if len(body) == 0: return
-	var ccol = BODYCOLOR.darkened(.5)
-	var d = 1.0/len(body)
+	if len(body) == 0: 
+		return false
+	var ccol = HEADCOLOR
+	var d = min(1.0/len(body), .1)
 	for v in body:
 		set_color(v.x, v.y, ccol)
 		ccol = ccol.lightened(d)
+	return true
 
 func make_node(x, y):
 	'''Instantiates a Polygon2D node and adds it to the tree'''
@@ -208,6 +200,7 @@ func refresh_bg():
 	paint_body()
 	if (wason): bodyCanMove = true
 
+# animation
 func paint_row(x):
 	for y in NSQUARES:
 		#var node = retrieve_node(x, y)
@@ -259,3 +252,28 @@ func randint(lb, ub):
 	"Generates and returns a random number in the range [lb, ub]"
 	randomize()
 	return randi_range(lb, ub)
+
+## simultaneous async
+signal all_done
+
+var i: int:
+	set(val):
+		i = val
+		if i == 2:
+			all_done.emit()
+
+func delay_wrapper():
+	await delay(T)
+	i += 1
+
+func paint_body_wrapper():
+	await paint_body()
+	if i == 1:
+		print("paint too long")
+	i += 1
+
+func wait_for_frame():
+	i = 0
+	delay_wrapper()
+	paint_body_wrapper()
+	await all_done
