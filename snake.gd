@@ -165,7 +165,7 @@ func paint_body():
 	if len(body) == 0: 
 		return false
 	var ccol = HEADCOLOR
-	var d = min(1.0/len(body), .1)
+	var d = min(.8/len(body), .1)
 	for v in body:
 		set_color(v.x, v.y, ccol)
 		ccol = ccol.lightened(d)
