@@ -38,9 +38,9 @@ var paused = false
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# reset all vars
-	BGCOLOR = Color.DARK_CYAN
+	BGCOLOR = Color.LAVENDER.darkened(.3)
 	APPLECOLOR = Color.DARK_RED
-	HEADCOLOR = Color.DARK_ORCHID
+	HEADCOLOR = Color.NAVY_BLUE
 	gameOn = false
 	squareWidth = 0
 	body = []
