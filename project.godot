@@ -16,7 +16,7 @@ run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 boot_splash/bg_color=Color(0.113725, 0.152941, 0.121569, 1)
 boot_splash/show_image=false
-config/icon="res://appIcon.png"
+config/icon="res://assets/icons/appIcon.png"
 
 [display]
 

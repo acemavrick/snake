@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://destmffa502sf"]
 
 [ext_resource type="Script" path="res://snake.gd" id="1_c4xt4"]
-[ext_resource type="Shader" path="res://monitor.gdshader" id="2_2xn8a"]
-[ext_resource type="FontFile" uid="uid://cpgo5ann7d2ox" path="res://dpcomic.ttf" id="3_2glk2"]
+[ext_resource type="Shader" path="res://assets/monitor.gdshader" id="2_2xn8a"]
+[ext_resource type="FontFile" uid="uid://cx3vnlmmcafpi" path="res://assets/dpcomic.ttf" id="3_2glk2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_s6pfr"]
 resource_local_to_scene = true
