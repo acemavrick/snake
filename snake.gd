@@ -4,6 +4,8 @@ extends Node2D
 enum DIRS {N, E, S, W}
 const DIRMAP = {DIRS.N:[0,-1], DIRS.E:[1,0], DIRS.S:[0,1], DIRS.W:[-1, 0]}
 
+signal died
+
 # size (NxN) of grid
 var NSQUARES = max(16, 5)
 
@@ -37,6 +39,12 @@ var paused = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	await init_nodes()
+	get_viewport().size_changed.connect(refresh_width)
+	#start_game()
+
+func start_game():
+	%UI.visible = false
 	# reset all vars
 	BGCOLOR = Color.LAVENDER.darkened(.3)
 	APPLECOLOR = Color.DARK_RED
@@ -51,16 +59,12 @@ func _ready() -> void:
 	paused = false
 	
 	update_score(0)
-	init_nodes()
-	refresh_width()
-	if not (get_viewport().size_changed.is_connected(refresh_width)):
-		get_viewport().size_changed.connect(refresh_width)
+	reset_apple(1)
 	reset_bod()
-	reset_apple()
-	paint_body()
+	await refresh_width()
+		
 	gameOn = true
 	bodyCanMove = true
-
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
@@ -100,10 +104,11 @@ func update_score(x):
 	%Score.text = "Score: " + str(x)
 
 func game_over():
+	died.emit()
 	gameOn = false
 	print("Score = " + str(len(body)))
-	HEADCOLOR = Color.INDIAN_RED
-	BGCOLOR = Color.PALE_VIOLET_RED
+	HEADCOLOR = Color.BLACK
+	BGCOLOR = Color.PALE_VIOLET_RED.lightened(.1)
 	appleLoc = Vector2i(-1, -1)
 	refresh_bg()
 
@@ -136,11 +141,12 @@ func same_dirline(dir):
 	"""Checks to see if 'dir' is in the same horizontal/vertical line as cDir"""
 	return cDir == dir || cDir == DIRS.values()[(DIRS.values().find(dir)+2)%4]
 
-func reset_apple():
+func reset_apple(x = 0):
 	"""Generates an 'apple' at a random unoccupied location"""
 	while not cellValid(appleLoc):
 		appleLoc = Vector2i(randint(0, NSQUARES), randint(0, NSQUARES))
-	set_color(appleLoc.x, appleLoc.y, APPLECOLOR)
+	if x == 0:
+		set_color(appleLoc.x, appleLoc.y, APPLECOLOR)
 
 func cellValid(vect):
 	return 0 <= vect.x and vect.x < NSQUARES \
@@ -161,7 +167,7 @@ func init_nodes():
 		for y in NSQUARES:
 			make_node(x,y)
 
-func paint_body():
+func paint_body(acar=0):
 	if len(body) == 0: 
 		return false
 	var ccol = HEADCOLOR
@@ -169,6 +175,8 @@ func paint_body():
 	for v in body:
 		set_color(v.x, v.y, ccol)
 		ccol = ccol.lightened(d)
+		if acar > 0:
+			await delay(.1)
 	return true
 
 func make_node(x, y):
@@ -188,32 +196,50 @@ func refresh_bg():
 	if (bodyCanMove): 
 		wason = true
 		bodyCanMove = false
-	for x in NSQUARES:
-		for y in NSQUARES:
-			var node = retrieve_node(x,y)
-			node.scale = Vector2i(1, 1)*squareWidth
-			node.position = Vector2i(x, y)*squareWidth
-			node.color = BGCOLOR
 	
-	if cellValid(appleLoc):
-		set_color(appleLoc.x, appleLoc.y, APPLECOLOR)
-	paint_body()
+	if wason:
+		await refresh_bg_normloop()
+	else:
+		await refresh_bg_aniloop()
+	
+	await paint_body(0 if wason else 1)
 	if (wason): bodyCanMove = true
 
-# animation
-func paint_row(x):
+func refresh_bg_normloop():
+	for x in NSQUARES:
+		for y in NSQUARES:
+			setup_node(x,y)
+
+func setup_node(x, y):
+	var node = retrieve_node(x,y)
+	node.scale = Vector2i(1, 1)*squareWidth
+	node.position = Vector2i(x, y)*squareWidth
+	if Vector2i(x, y) == appleLoc:
+		node.color = APPLECOLOR
+	else:
+		node.color = BGCOLOR
+
+func rowloop(x):
 	for y in NSQUARES:
-		#var node = retrieve_node(x, y)
-		#node.color = Color.LIGHT_GREEN
-		#node.scale = Vector2i(1, 1)*squareWidth
-		#node.position = Vector2i(x, y)*squareWidth
-		await delay(.01)
+		setup_node(x,y)
+		await delay(.04)
+		
+func refresh_bg_aniloop():
+	for x in NSQUARES:
+		if (x == NSQUARES-1):
+			await rowloop(x)
+		else: 
+			rowloop(x)
+			await delay(.02)
 
 func destroy_nodes():
 	'''Removes all nodes from the tree'''
+	
 	for x in NSQUARES:
 		for y in NSQUARES:
-			retrieve_node(x,y).free()
+			set_color(x,y, Color.TRANSPARENT)
+			#retrieve_node(x,y).free()
+			#await delay(.1)
 
 func retrieve_node(x,y):
 	if (get_node(gen_idstr(x,y)) == null):
@@ -229,7 +255,7 @@ func refresh_width():
 	squareWidth = minDimension/NSQUARES
 	%monitor.size = viewportSize #+ Vector2(40, 40)
 	#%monitor.position = Vector2(-20,-20)
-	refresh_bg()
+	await refresh_bg()
 	gameOn = true
 
 func delay(sec):
@@ -277,3 +303,7 @@ func wait_for_frame():
 	delay_wrapper()
 	paint_body_wrapper()
 	await all_done
+
+
+func _on_play_button_pressed() -> void:
+	start_game()

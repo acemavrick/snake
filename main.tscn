@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://destmffa502sf"]
+[gd_scene load_steps=8 format=3 uid="uid://destmffa502sf"]
 
 [ext_resource type="Script" path="res://snake.gd" id="1_c4xt4"]
+[ext_resource type="Script" path="res://UI.gd" id="2_0pev8"]
 [ext_resource type="Shader" path="res://assets/monitor.gdshader" id="2_2xn8a"]
+[ext_resource type="Texture2D" uid="uid://dttgx3nl8xf41" path="res://assets/snake.svg" id="2_grcb8"]
 [ext_resource type="FontFile" uid="uid://cx3vnlmmcafpi" path="res://assets/dpcomic.ttf" id="3_2glk2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_s6pfr"]
@@ -38,7 +40,7 @@ script = ExtResource("1_c4xt4")
 
 [node name="monitor" type="ColorRect" parent="."]
 unique_name_in_owner = true
-z_index = 5
+z_index = 3
 material = SubResource("ShaderMaterial_s6pfr")
 offset_right = 600.0
 offset_bottom = 600.0
@@ -46,10 +48,51 @@ color = Color(1, 1, 1, 0)
 
 [node name="Score" type="Label" parent="."]
 unique_name_in_owner = true
-z_index = 4
+z_index = 1
 offset_left = 20.0
 offset_top = 552.0
 offset_right = 206.0
 offset_bottom = 593.0
 text = "Score: 100"
 label_settings = SubResource("LabelSettings_kf1q7")
+
+[node name="UI" type="Control" parent="."]
+unique_name_in_owner = true
+z_index = 2
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_0pev8")
+
+[node name="TextureRect" type="TextureRect" parent="UI"]
+z_index = 1
+layout_mode = 0
+offset_left = 113.0
+offset_top = 56.0
+offset_right = 666.0
+offset_bottom = 235.0
+scale = Vector2(0.68, 0.68)
+texture = ExtResource("2_grcb8")
+
+[node name="ColorRect" type="ColorRect" parent="UI"]
+z_index = -1
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 600.0
+color = Color(0.301961, 0.301961, 0.301961, 0.819608)
+
+[node name="play_button" type="Button" parent="UI"]
+clip_contents = true
+custom_minimum_size = Vector2(100, 10)
+layout_mode = 0
+offset_left = 203.0
+offset_top = 256.0
+offset_right = 303.0
+offset_bottom = 287.0
+scale = Vector2(2, 2)
+text = "Play"
+
+[connection signal="died" from="." to="UI" method="_on_main_died"]
+[connection signal="pressed" from="UI/play_button" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="UI/play_button" to="UI" method="_on_play_button_pressed"]
