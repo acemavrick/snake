@@ -1,5 +1,21 @@
 extends Node2D
 
+var cfgLoc = "res://snake.cfg"
+var cfgPwd = "SiNcE_WHenDid_SnaKEs_eaT_ApPLes??"
+var config: ConfigFile
+var cfg = {
+	"bgcol" : Color.LAVENDER.darkened(.3),
+	"applecol" : Color.DARK_RED,
+	"headcol" : Color.NAVY_BLUE,
+	"bgdead" : Color.PALE_VIOLET_RED.lightened(.1),
+	"headdead" : Color.BLACK,
+	"size" : 16,
+	"topscores" : [0, 0, 0, 0, 0],
+	"crt" : true,
+	"speed" : .1,
+}
+
+
 # directions [dx, dy]
 enum DIRS {N, E, S, W}
 const DIRMAP = {DIRS.N:[0,-1], DIRS.E:[1,0], DIRS.S:[0,1], DIRS.W:[-1, 0]}
@@ -7,10 +23,10 @@ const DIRMAP = {DIRS.N:[0,-1], DIRS.E:[1,0], DIRS.S:[0,1], DIRS.W:[-1, 0]}
 signal died
 
 # size (NxN) of grid
-var NSQUARES = max(16, 5)
+var NSQUARES
 
 # time between frames (T = period) (sec)
-var T = .1
+var T
 
 # colors
 var BGCOLOR
@@ -39,16 +55,67 @@ var paused = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	await get_config()
 	await init_nodes()
 	get_viewport().size_changed.connect(refresh_width)
 	#start_game()
 
+func get_config():
+	print("loading cfg...")
+	config = ConfigFile.new()
+	var err = config.load_encrypted_pass(cfgLoc, cfgPwd)
+	if err == OK:
+		# config file exists
+		print("cfg exists")
+		load_config(config, cfg)
+	else:
+		print("cfg does not exist")
+		write_config(config, cfg)
+
+func exportCfg():
+	return cfg
+
+func sendCfg(c, save = false):
+	cfg = c
+	setVars()
+	if save:
+		write_config(config, cfg)
+
+func load_config(cfgFile, cfgDict):
+	print("reading from cfg...")
+	for k in cfgDict.keys():
+		cfgDict[k] = cfgFile.get_value("s1", k)
+	print("...loaded")
+	print(cfgFile.encode_to_text())
+	# reset vars
+	setVars()
+
+func write_config(cfgFile, cfgDict):
+	cfgFile.clear()
+	print("writing cfg...")
+	for k in cfgDict.keys():
+		cfgFile.set_value("s1", k, cfgDict[k])
+	print(cfgFile.encode_to_text())
+	cfgFile.save_encrypted_pass(cfgLoc, cfgPwd)
+	print("...saved.")
+	setVars()
+
+func setVars():
+	# called after a load/write to config
+	T = cfg["speed"]
+	NSQUARES = max(cfg["size"], 5)
+	BGCOLOR = cfg["bgcol"]
+	APPLECOLOR = cfg["applecol"]
+	HEADCOLOR = cfg["headcol"]
+	%UI.update_highs(cfg["topscores"])
+	%monitor.visible = cfg["crt"]
+	if len(body)-3 <= 0: 
+		update_score("--")
+
 func start_game():
 	%UI.visible = false
 	# reset all vars
-	BGCOLOR = Color.LAVENDER.darkened(.3)
-	APPLECOLOR = Color.DARK_RED
-	HEADCOLOR = Color.NAVY_BLUE
+	setVars()
 	gameOn = false
 	squareWidth = 0
 	body = []
@@ -94,7 +161,7 @@ func _process(_delta: float) -> void:
 			var todel = body.pop_back()
 			set_color(todel.x, todel.y, BGCOLOR)
 		
-		update_score(len(body)-1)
+		update_score(len(body)-3)
 		
 		bodyCanMove = false
 		await wait_for_frame()
@@ -102,22 +169,36 @@ func _process(_delta: float) -> void:
 
 func update_score(x):
 	%Score.text = "Score: " + str(x)
+	if typeof(x) == typeof(10):
+		%Score.text += "\nHigh: " + str(max(x, cfg["topscores"][0]))
+	else:
+		%Score.text += "\nHigh: " + str(cfg["topscores"][0])
 
 func game_over():
 	died.emit()
 	gameOn = false
-	print("Score = " + str(len(body)))
-	HEADCOLOR = Color.BLACK
-	BGCOLOR = Color.PALE_VIOLET_RED.lightened(.1)
+	var score = len(body)-3
+	print("Score = " + str(score))
+	# update score
+	for x in range(len(cfg["topscores"])):
+		if cfg["topscores"][x] < score:
+			print("High Score!")
+			cfg["topscores"].insert(x, score)
+			cfg["topscores"].pop_back()
+			print(cfg["topscores"])
+			write_config(config, cfg)
+			break
+	HEADCOLOR = cfg["headdead"]
+	BGCOLOR = cfg["bgdead"]
 	appleLoc = Vector2i(-1, -1)
 	refresh_bg()
 
 func parse_input():
-	if Input.is_action_just_pressed("reset"):
-		gameOn = false
-		await destroy_nodes()
-		_ready()
-		return
+	#if Input.is_action_just_pressed("reset"):
+		#gameOn = false
+		#await destroy_nodes()
+		#_ready()
+		#return
 	if Input.is_action_just_pressed("pause"):
 		paused = !paused
 		return

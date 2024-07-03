@@ -20,9 +20,10 @@ config/icon="res://assets/icons/appIcon.png"
 
 [display]
 
-window/size/viewport_width=600
-window/size/viewport_height=600
+window/size/viewport_width=1200
+window/size/viewport_height=1200
 window/stretch/mode="viewport"
+window/stretch/scale=2.0
 
 [input]
 

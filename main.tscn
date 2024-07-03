@@ -1,10 +1,12 @@
-[gd_scene load_steps=8 format=3 uid="uid://destmffa502sf"]
+[gd_scene load_steps=13 format=3 uid="uid://destmffa502sf"]
 
 [ext_resource type="Script" path="res://snake.gd" id="1_c4xt4"]
 [ext_resource type="Script" path="res://UI.gd" id="2_0pev8"]
 [ext_resource type="Shader" path="res://assets/monitor.gdshader" id="2_2xn8a"]
 [ext_resource type="Texture2D" uid="uid://dttgx3nl8xf41" path="res://assets/snake.svg" id="2_grcb8"]
 [ext_resource type="FontFile" uid="uid://cx3vnlmmcafpi" path="res://assets/dpcomic.ttf" id="3_2glk2"]
+[ext_resource type="Script" path="res://pageButton.gd" id="6_0rons"]
+[ext_resource type="Script" path="res://settings.gd" id="7_jepck"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_s6pfr"]
 resource_local_to_scene = true
@@ -35,12 +37,21 @@ shader_parameter/vignette_opacity = 0.685
 font = ExtResource("3_2glk2")
 font_size = 45
 
+[sub_resource type="LabelSettings" id="LabelSettings_i31rj"]
+font_size = 22
+
+[sub_resource type="LabelSettings" id="LabelSettings_jwavw"]
+font_size = 66
+
+[sub_resource type="LabelSettings" id="LabelSettings_cn4e6"]
+font_size = 35
+
 [node name="main" type="Node2D"]
 script = ExtResource("1_c4xt4")
 
 [node name="monitor" type="ColorRect" parent="."]
 unique_name_in_owner = true
-z_index = 3
+z_index = 4
 material = SubResource("ShaderMaterial_s6pfr")
 offset_right = 600.0
 offset_bottom = 600.0
@@ -50,49 +61,183 @@ color = Color(1, 1, 1, 0)
 unique_name_in_owner = true
 z_index = 1
 offset_left = 20.0
-offset_top = 552.0
+offset_top = 468.0
 offset_right = 206.0
 offset_bottom = 593.0
-text = "Score: 100"
+text = "Score: 100
+High: 123"
 label_settings = SubResource("LabelSettings_kf1q7")
+vertical_alignment = 2
 
 [node name="UI" type="Control" parent="."]
 unique_name_in_owner = true
-z_index = 2
+z_index = 3
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("2_0pev8")
 
-[node name="TextureRect" type="TextureRect" parent="UI"]
-z_index = 1
-layout_mode = 0
-offset_left = 113.0
-offset_top = 56.0
-offset_right = 666.0
-offset_bottom = 235.0
-scale = Vector2(0.68, 0.68)
-texture = ExtResource("2_grcb8")
-
-[node name="ColorRect" type="ColorRect" parent="UI"]
+[node name="uibg" type="ColorRect" parent="UI"]
 z_index = -1
 layout_mode = 0
 offset_right = 600.0
 offset_bottom = 600.0
-color = Color(0.301961, 0.301961, 0.301961, 0.819608)
+color = Color(0.301961, 0.301961, 0.301961, 0.760784)
 
-[node name="play_button" type="Button" parent="UI"]
+[node name="main" type="Control" parent="UI"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TextureRect" type="TextureRect" parent="UI/main"]
+z_index = 2
+layout_mode = 0
+offset_left = 125.0
+offset_top = 56.0
+offset_right = 678.0
+offset_bottom = 235.0
+scale = Vector2(0.68, 0.68)
+texture = ExtResource("2_grcb8")
+
+[node name="HScores" type="Label" parent="UI/main"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 59.0
+offset_top = 214.0
+offset_right = 320.0
+offset_bottom = 469.0
+text = "High Scores
+1 - 
+2 - 
+3 - 
+4 -
+5 - "
+label_settings = SubResource("LabelSettings_i31rj")
+
+[node name="play_button" type="Button" parent="UI/main"]
 clip_contents = true
 custom_minimum_size = Vector2(100, 10)
 layout_mode = 0
-offset_left = 203.0
-offset_top = 256.0
-offset_right = 303.0
-offset_bottom = 287.0
+offset_left = 341.0
+offset_top = 214.0
+offset_right = 441.0
+offset_bottom = 245.0
 scale = Vector2(2, 2)
 text = "Play"
 
+[node name="settings" type="Button" parent="UI/main"]
+clip_contents = true
+custom_minimum_size = Vector2(100, 10)
+layout_mode = 0
+offset_left = 341.0
+offset_top = 286.0
+offset_right = 441.0
+offset_bottom = 317.0
+scale = Vector2(2, 2)
+text = "Settings"
+script = ExtResource("6_0rons")
+metadata/page = "settings"
+
+[node name="credits" type="Button" parent="UI/main"]
+clip_contents = true
+custom_minimum_size = Vector2(100, 10)
+layout_mode = 0
+offset_left = 341.0
+offset_top = 360.0
+offset_right = 441.0
+offset_bottom = 391.0
+scale = Vector2(2, 2)
+text = "Credits"
+script = ExtResource("6_0rons")
+metadata/page = "credits"
+
+[node name="settings" type="Control" parent="UI"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("7_jepck")
+
+[node name="title" type="Label" parent="UI/settings"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 12.0
+offset_right = 294.0
+offset_bottom = 103.0
+text = "Settings"
+label_settings = SubResource("LabelSettings_jwavw")
+
+[node name="crt" type="Button" parent="UI/settings"]
+unique_name_in_owner = true
+clip_contents = true
+offset_left = 39.0
+offset_top = 316.0
+offset_right = 103.0
+offset_bottom = 347.0
+scale = Vector2(2, 2)
+toggle_mode = true
+text = "CRT ???"
+metadata/page = "main"
+
+[node name="cancel" type="Button" parent="UI/settings"]
+unique_name_in_owner = true
+clip_contents = true
+custom_minimum_size = Vector2(100, 10)
+offset_left = 39.0
+offset_top = 422.0
+offset_right = 139.0
+offset_bottom = 453.0
+scale = Vector2(2, 2)
+text = "1234567"
+metadata/page = "main"
+
+[node name="save" type="Button" parent="UI/settings"]
+unique_name_in_owner = true
+clip_contents = true
+custom_minimum_size = Vector2(100, 10)
+offset_left = 341.0
+offset_top = 422.0
+offset_right = 441.0
+offset_bottom = 453.0
+scale = Vector2(2, 2)
+text = "Save"
+metadata/page = "main"
+
+[node name="credits" type="Control" parent="UI"]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="UI/credits"]
+layout_mode = 0
+offset_left = 59.0
+offset_top = 40.0
+offset_right = 484.0
+offset_bottom = 348.0
+text = "HELLO! =D
+This game is made by
+@acemavrick
+
+"
+label_settings = SubResource("LabelSettings_cn4e6")
+
+[node name="back" type="Button" parent="UI/credits"]
+clip_contents = true
+custom_minimum_size = Vector2(100, 10)
+offset_left = 40.0
+offset_top = 422.0
+offset_right = 140.0
+offset_bottom = 453.0
+scale = Vector2(2, 2)
+text = "Back"
+script = ExtResource("6_0rons")
+metadata/page = "main"
+
 [connection signal="died" from="." to="UI" method="_on_main_died"]
-[connection signal="pressed" from="UI/play_button" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="UI/play_button" to="UI" method="_on_play_button_pressed"]
+[connection signal="pressed" from="UI/main/play_button" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="UI/main/play_button" to="UI" method="_on_play_button_pressed"]
+[connection signal="pressed" from="UI/settings/cancel" to="UI/settings" method="_on_cancel_pressed"]
+[connection signal="pressed" from="UI/settings/save" to="UI/settings" method="_on_save_pressed"]
