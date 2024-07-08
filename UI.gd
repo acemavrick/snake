@@ -29,12 +29,12 @@ func setScene(n):
 	if not found:
 		print("no scene found for " + n)
 
-func update_highs(scores):
+func update_highs(scores, speed):
 	%HScores.text = """\
-	High Scores
+	High Scores (""" + str(speed) + """)
 	1 - %d
 	2 - %d
 	3 - %d
 	4 - %d
 	5 - %d
-	""" % scores
+	(Clear scores in Settings)""" % scores[speed]

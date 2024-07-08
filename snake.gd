@@ -3,18 +3,19 @@ extends Node2D
 var cfgLoc = "res://snake.cfg"
 var cfgPwd = "SiNcE_WHenDid_SnaKEs_eaT_ApPLes??"
 var config: ConfigFile
-var cfg = {
+var defcfg = {
 	"bgcol" : Color.LAVENDER.darkened(.3),
 	"applecol" : Color.DARK_RED,
 	"headcol" : Color.NAVY_BLUE,
 	"bgdead" : Color.PALE_VIOLET_RED.lightened(.1),
 	"headdead" : Color.BLACK,
 	"size" : 16,
-	"topscores" : [0, 0, 0, 0, 0],
+	"topscores" : {},
 	"crt" : true,
 	"speed" : .1,
+	"change": false
 }
-
+var cfg = defcfg.duplicate(true)
 
 # directions [dx, dy]
 enum DIRS {N, E, S, W}
@@ -56,7 +57,6 @@ var paused = false
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	await get_config()
-	await init_nodes()
 	get_viewport().size_changed.connect(refresh_width)
 	#start_game()
 
@@ -93,12 +93,59 @@ func load_config(cfgFile, cfgDict):
 func write_config(cfgFile, cfgDict):
 	cfgFile.clear()
 	print("writing cfg...")
+	cfgDict["change"] = false
 	for k in cfgDict.keys():
+		if not cfgDict["change"] and \
+		not (k == "change" or "topscores") and cfgDict[k] != defcfg[k]:
+			cfgDict["change"] = true
 		cfgFile.set_value("s1", k, cfgDict[k])
 	print(cfgFile.encode_to_text())
 	cfgFile.save_encrypted_pass(cfgLoc, cfgPwd)
 	print("...saved.")
 	setVars()
+	
+func resetCfg():
+	if not cfg["change"]:
+		return
+	defcfg["topscores"] = cfg["topscores"]
+	cfg = defcfg.duplicate(true)
+	write_config(config, defcfg)
+
+func getdefcfg():
+	return defcfg
+
+func update_high_scores(score=-1):
+	if score == -3:
+		cfg["topscores"] = {}
+	
+	var has = false
+	for x in cfg["topscores"].keys():
+		has = has or x==T
+		if cfg["topscores"][x].max() == 0:
+			if x == T:
+				has = false
+			else:
+				cfg["topscores"].erase(x)
+				
+	if not has or score == -2:
+		cfg["topscores"][T] = [0, 0, 0, 0, 0]
+	
+	if score > -1:
+		for x in range(len(cfg["topscores"][T])):
+			if cfg["topscores"][T][x] < score:
+				print("High Score!")
+				cfg["topscores"][T].insert(x, score)
+				cfg["topscores"][T].pop_back()
+				print(cfg["topscores"][T])
+				write_config(config, cfg)
+				break
+
+	%UI.update_highs(cfg["topscores"], T)
+	update_score(-1, true)
+	
+	#update the cfg
+	config.set_value("s1", "topscores", cfg["topscores"])
+	config.save_encrypted_pass(cfgLoc, cfgPwd)
 
 func setVars():
 	# called after a load/write to config
@@ -107,12 +154,14 @@ func setVars():
 	BGCOLOR = cfg["bgcol"]
 	APPLECOLOR = cfg["applecol"]
 	HEADCOLOR = cfg["headcol"]
-	%UI.update_highs(cfg["topscores"])
+	update_high_scores()
+	
 	%monitor.visible = cfg["crt"]
 	if len(body)-3 <= 0: 
 		update_score("--")
 
 func start_game():
+	init_nodes()
 	%UI.visible = false
 	# reset all vars
 	setVars()
@@ -126,8 +175,8 @@ func start_game():
 	paused = false
 	
 	update_score(0)
-	reset_apple(1)
 	reset_bod()
+	reset_apple(1)
 	await refresh_width()
 		
 	gameOn = true
@@ -167,12 +216,15 @@ func _process(_delta: float) -> void:
 		await wait_for_frame()
 		bodyCanMove = true
 
-func update_score(x):
-	%Score.text = "Score: " + str(x)
+func update_score(x, highonly = false):
+	if not highonly:
+		%Score.text = str(T) + "\nScore: " + str(x)
+	if highonly:
+		%Score.text = %Score.text.split("\nHigh")[0]
 	if typeof(x) == typeof(10):
-		%Score.text += "\nHigh: " + str(max(x, cfg["topscores"][0]))
+		%Score.text += "\nHigh: " + str(max(x, cfg["topscores"][T][0]))
 	else:
-		%Score.text += "\nHigh: " + str(cfg["topscores"][0])
+		%Score.text += "\nHigh: " + str(cfg["topscores"][T][0])
 
 func game_over():
 	died.emit()
@@ -180,14 +232,7 @@ func game_over():
 	var score = len(body)-3
 	print("Score = " + str(score))
 	# update score
-	for x in range(len(cfg["topscores"])):
-		if cfg["topscores"][x] < score:
-			print("High Score!")
-			cfg["topscores"].insert(x, score)
-			cfg["topscores"].pop_back()
-			print(cfg["topscores"])
-			write_config(config, cfg)
-			break
+	update_high_scores(score)
 	HEADCOLOR = cfg["headdead"]
 	BGCOLOR = cfg["bgdead"]
 	appleLoc = Vector2i(-1, -1)
@@ -244,9 +289,16 @@ func reset_bod():
 
 func init_nodes():
 	'''Initializes all the nodes'''
-	for x in NSQUARES:
-		for y in NSQUARES:
-			make_node(x,y)
+	for x in %UI/settings/sizeSlider.max_value:
+		for y in %UI/settings/sizeSlider.max_value:
+			var has = has_node(gen_idstr(x,y))
+			if x >= NSQUARES or y >= NSQUARES:
+				if has:
+					retrieve_node(x,y).queue_free()
+			else:
+				if not has:
+					make_node(x,y)
+		
 
 func paint_body(acar=0):
 	if len(body) == 0: 
@@ -303,7 +355,7 @@ func setup_node(x, y):
 func rowloop(x):
 	for y in NSQUARES:
 		setup_node(x,y)
-		await delay(.04)
+		await delay(16/NSQUARES*.04)
 		
 func refresh_bg_aniloop():
 	for x in NSQUARES:
@@ -311,7 +363,7 @@ func refresh_bg_aniloop():
 			await rowloop(x)
 		else: 
 			rowloop(x)
-			await delay(.02)
+			await delay(16/NSQUARES*.02)
 
 func destroy_nodes():
 	'''Removes all nodes from the tree'''

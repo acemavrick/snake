@@ -35,7 +35,7 @@ shader_parameter/vignette_opacity = 0.685
 
 [sub_resource type="LabelSettings" id="LabelSettings_kf1q7"]
 font = ExtResource("3_2glk2")
-font_size = 45
+font_size = 36
 
 [sub_resource type="LabelSettings" id="LabelSettings_i31rj"]
 font_size = 22
@@ -64,7 +64,8 @@ offset_left = 20.0
 offset_top = 468.0
 offset_right = 206.0
 offset_bottom = 593.0
-text = "Score: 100
+text = ".1
+Score: 100
 High: 123"
 label_settings = SubResource("LabelSettings_kf1q7")
 vertical_alignment = 2
@@ -172,19 +173,33 @@ label_settings = SubResource("LabelSettings_jwavw")
 [node name="crt" type="Button" parent="UI/settings"]
 unique_name_in_owner = true
 clip_contents = true
+layout_mode = 0
 offset_left = 39.0
-offset_top = 316.0
-offset_right = 103.0
-offset_bottom = 347.0
+offset_top = 326.0
+offset_right = 139.0
+offset_bottom = 357.0
 scale = Vector2(2, 2)
 toggle_mode = true
 text = "CRT ???"
+metadata/page = "main"
+
+[node name="reset" type="Button" parent="UI/settings"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 0
+offset_left = 354.0
+offset_top = 422.0
+offset_right = 454.0
+offset_bottom = 453.0
+scale = Vector2(2, 2)
+text = "Reset"
 metadata/page = "main"
 
 [node name="cancel" type="Button" parent="UI/settings"]
 unique_name_in_owner = true
 clip_contents = true
 custom_minimum_size = Vector2(100, 10)
+layout_mode = 0
 offset_left = 39.0
 offset_top = 422.0
 offset_right = 139.0
@@ -197,12 +212,125 @@ metadata/page = "main"
 unique_name_in_owner = true
 clip_contents = true
 custom_minimum_size = Vector2(100, 10)
-offset_left = 341.0
-offset_top = 422.0
-offset_right = 441.0
-offset_bottom = 453.0
+layout_mode = 0
+offset_left = 354.0
+offset_top = 326.0
+offset_right = 454.0
+offset_bottom = 357.0
 scale = Vector2(2, 2)
 text = "Save"
+metadata/page = "main"
+
+[node name="speedlabel" type="Label" parent="UI/settings"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 252.0
+offset_right = 92.0
+offset_bottom = 275.0
+scale = Vector2(1.6, 1.6)
+text = "Speed:"
+vertical_alignment = 1
+
+[node name="speedSlider" type="HSlider" parent="UI/settings"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 139.0
+offset_top = 252.0
+offset_right = 338.0
+offset_bottom = 286.0
+min_value = 0.01
+max_value = 1.0
+step = 0.01
+value = 0.01
+exp_edit = true
+
+[node name="speed" type="LineEdit" parent="UI/settings"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 351.0
+offset_top = 252.0
+offset_right = 418.062
+offset_bottom = 283.0
+scale = Vector2(1.2, 1.2)
+text = "1.0"
+alignment = 1
+context_menu_enabled = false
+virtual_keyboard_type = 3
+shortcut_keys_enabled = false
+middle_mouse_paste_enabled = false
+drag_and_drop_selection_enabled = false
+select_all_on_focus = true
+
+[node name="sizeLabel" type="Label" parent="UI/settings"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 197.0
+offset_right = 91.0
+offset_bottom = 220.0
+scale = Vector2(1.6, 1.6)
+text = "Size:"
+vertical_alignment = 1
+
+[node name="sizeSlider" type="HSlider" parent="UI/settings"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 138.0
+offset_top = 197.0
+offset_right = 337.0
+offset_bottom = 231.0
+min_value = 5.0
+value = 16.0
+
+[node name="size" type="LineEdit" parent="UI/settings"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 350.0
+offset_top = 197.0
+offset_right = 417.062
+offset_bottom = 228.0
+scale = Vector2(1.2, 1.2)
+text = "1.0"
+alignment = 1
+context_menu_enabled = false
+virtual_keyboard_type = 3
+shortcut_keys_enabled = false
+middle_mouse_paste_enabled = false
+drag_and_drop_selection_enabled = false
+select_all_on_focus = true
+
+[node name="highscores" type="Label" parent="UI/settings"]
+layout_mode = 0
+offset_left = 184.015
+offset_top = 520.0
+offset_right = 279.015
+offset_bottom = 557.0
+rotation = 0.000253205
+scale = Vector2(1.6, 1.6)
+text = "High Scores:"
+vertical_alignment = 1
+
+[node name="clearall" type="Button" parent="UI/settings"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 0
+offset_left = 354.0
+offset_top = 532.0
+offset_right = 437.0
+offset_bottom = 563.0
+scale = Vector2(1.2, 1.2)
+text = "Clear All"
+metadata/page = "main"
+
+[node name="clearlvl" type="Button" parent="UI/settings"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 0
+offset_left = 470.015
+offset_top = 532.0
+offset_right = 553.015
+offset_bottom = 563.0
+scale = Vector2(1.2, 1.2)
+text = "Clear Lvl"
 metadata/page = "main"
 
 [node name="credits" type="Control" parent="UI"]
@@ -227,6 +355,7 @@ label_settings = SubResource("LabelSettings_cn4e6")
 [node name="back" type="Button" parent="UI/credits"]
 clip_contents = true
 custom_minimum_size = Vector2(100, 10)
+layout_mode = 0
 offset_left = 40.0
 offset_top = 422.0
 offset_right = 140.0
@@ -241,3 +370,7 @@ metadata/page = "main"
 [connection signal="pressed" from="UI/main/play_button" to="UI" method="_on_play_button_pressed"]
 [connection signal="pressed" from="UI/settings/cancel" to="UI/settings" method="_on_cancel_pressed"]
 [connection signal="pressed" from="UI/settings/save" to="UI/settings" method="_on_save_pressed"]
+[connection signal="value_changed" from="UI/settings/speedSlider" to="UI/settings" method="_on_speed_value_changed"]
+[connection signal="text_submitted" from="UI/settings/speed" to="UI/settings" method="_on_speed_value_changed"]
+[connection signal="value_changed" from="UI/settings/sizeSlider" to="UI/settings" method="_on_size_changed"]
+[connection signal="text_submitted" from="UI/settings/size" to="UI/settings" method="_on_size_changed"]
